@@ -2,8 +2,8 @@
 title: "Relation between GDP and S&P/TSX index"
 author: "Chuyi Zhang"
 date: "December 21st, 2020"
-categories: ["R"]
-tags:["R Markdown"]
+#categories: ["R"]
+#tags:["R Markdown"]
 output:
   html_document
 ---
