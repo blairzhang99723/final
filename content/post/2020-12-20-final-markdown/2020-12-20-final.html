@@ -1,0 +1,212 @@
+---
+title: "Relation between GDP and S&P/TSX index"
+author: "Chuyi Zhang"
+date: "December 21st, 2020"
+#categories: ["R"]
+#tags:["R Markdown"]
+output:
+  html_document
+---
+
+<script src="/rmarkdown-libs/htmlwidgets/htmlwidgets.js"></script>
+<script src="/rmarkdown-libs/jquery/jquery.min.js"></script>
+<link href="/rmarkdown-libs/dygraphs/dygraph.css" rel="stylesheet" />
+<script src="/rmarkdown-libs/dygraphs/dygraph-combined.js"></script>
+<script src="/rmarkdown-libs/dygraphs/shapes.js"></script>
+<script src="/rmarkdown-libs/moment/moment.js"></script>
+<script src="/rmarkdown-libs/moment-timezone/moment-timezone-with-data.js"></script>
+<script src="/rmarkdown-libs/moment-fquarter/moment-fquarter.min.js"></script>
+<script src="/rmarkdown-libs/dygraphs-binding/dygraphs.js"></script>
+
+
+<div id="abstract" class="section level1">
+<h1>Abstract</h1>
+<p>This report mainly focuses on using GDP as an indicator variable to predict the stock index trend. This idea came to me recently due to the influence of Covid-19 on society. Around May, we(Canada) have reached a recession, the unemployment rate is very high, and people spend less money than before quarantine. In the meantime, the stock market was not facing an optimistic situation, either. It seems to be that both markets are in the recession and the money market seems to be affected earlier than the financial market. I will use real data set for almost 60 years to conduct the following analysis, trying to predict the causal links to make inference.</p>
+</div>
+<div id="keywords" class="section level1">
+<h1>Keywords</h1>
+<p>GDP, S&amp;P/TSX Composite Index, Causal Inference, Transfer noise model, VAR, Economics</p>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>Here I am interested in finding the relationship between the money market and the stock market and trying to model the relationship using statistical techniques mainly from time series analysis. I choose to analyze this problem through two indexes-GDP(Canada) and S&amp;P/TSX, which measure the final value produced within a country and stock market return. From my perspective, the GDP trend has some positive correlation with the trend of S&amp;P/TSX in the long-term, and no relation in a short time.
+The intuition is when the economy is performing well, people have more money in hand, and they tend to spend more in the stock market, leading to prosperity in the stock market at the same time. On the other hand, when the economy is in recession, people focus more on their daily spending; they do not have extras for more investment on securities, so the stock market does not perform well, the stock market index shows the change quickly. The main problem here is the time lagging between two indexes. We need to consider policy changes in real life might take some time to reflect in the stock market. Thus, having the ability to make causal inferences in the setting of distribution lag is critical to understanding how two markets are correlated. This project’s main objective is to predict the future trend of the S&amp;P/TSX index using GDP, or the opposite-stock market is a darn good forecaster of GDP growth.
+Two real data sets will be used to investigate how a causal link could be used to make an inference from GDP data to S&amp;P/TSX. In the Methodology section (Section 2), two subsections included-data, and model. The cleaned data for training purposes, the cleaned data for test purposes and the model used to perform the time series analysis. I describe the process of getting the final model- implement a few tests to see the relation between these two data sets for the model selection. Results of the selecting model, time series analysis are provided in the Results section (Section 3), and inferences of this data and conclusions are presented in the Conclusion section.</p>
+</div>
+<div id="methodology" class="section level1">
+<h1>Methodology:</h1>
+<div id="data" class="section level2">
+<h2>Data:</h2>
+<p>In this report, I used real data sets to conduct the analysis. GDP data set from National Canada and S&amp;P Composite Index from Yahoo Finance. The reason for choosing these two data is from my background knowledge of Economics, I was hoping to find something interesting.
+For GDP and S&amp;P/TSX data, I set the data on a quarterly basis. Training data ranges from 1980.01.01 to 2016.01.01, and the test data ranges from 2016.01.01 to 2019.10.01.
+The reason for not including recent data is that the market changed significantly by the Covid-19 pandemic, and the purpose of this research is to find a general trend; such a big recession not helpful in this process; so they were removed in the cleaning data process.
+<div id="htmlwidget-1" style="width:672px;height:480px;" class="dygraphs html-widget"></div>
+<script type="application/json" data-for="htmlwidget-1">{"x":{"attrs":{"title":"Figure 2.1: time series plot","labels":["quarter","S&P/TSX","GDP"],"legend":"auto","retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":60}}},"scale":"quarterly","annotations":[],"shadings":[],"events":[],"format":"date","data":[["1980-01-01T00:00:00.000Z","1980-04-01T00:00:00.000Z","1980-07-01T00:00:00.000Z","1980-10-01T00:00:00.000Z","1981-01-01T00:00:00.000Z","1981-04-01T00:00:00.000Z","1981-07-01T00:00:00.000Z","1981-10-01T00:00:00.000Z","1982-01-01T00:00:00.000Z","1982-04-01T00:00:00.000Z","1982-07-01T00:00:00.000Z","1982-10-01T00:00:00.000Z","1983-01-01T00:00:00.000Z","1983-04-01T00:00:00.000Z","1983-07-01T00:00:00.000Z","1983-10-01T00:00:00.000Z","1984-01-01T00:00:00.000Z","1984-04-01T00:00:00.000Z","1984-07-01T00:00:00.000Z","1984-10-01T00:00:00.000Z","1985-01-01T00:00:00.000Z","1985-04-01T00:00:00.000Z","1985-07-01T00:00:00.000Z","1985-10-01T00:00:00.000Z","1986-01-01T00:00:00.000Z","1986-04-01T00:00:00.000Z","1986-07-01T00:00:00.000Z","1986-10-01T00:00:00.000Z","1987-01-01T00:00:00.000Z","1987-04-01T00:00:00.000Z","1987-07-01T00:00:00.000Z","1987-10-01T00:00:00.000Z","1988-01-01T00:00:00.000Z","1988-04-01T00:00:00.000Z","1988-07-01T00:00:00.000Z","1988-10-01T00:00:00.000Z","1989-01-01T00:00:00.000Z","1989-04-01T00:00:00.000Z","1989-07-01T00:00:00.000Z","1989-10-01T00:00:00.000Z","1990-01-01T00:00:00.000Z","1990-04-01T00:00:00.000Z","1990-07-01T00:00:00.000Z","1990-10-01T00:00:00.000Z","1991-01-01T00:00:00.000Z","1991-04-01T00:00:00.000Z","1991-07-01T00:00:00.000Z","1991-10-01T00:00:00.000Z","1992-01-01T00:00:00.000Z","1992-04-01T00:00:00.000Z","1992-07-01T00:00:00.000Z","1992-10-01T00:00:00.000Z","1993-01-01T00:00:00.000Z","1993-04-01T00:00:00.000Z","1993-07-01T00:00:00.000Z","1993-10-01T00:00:00.000Z","1994-01-01T00:00:00.000Z","1994-04-01T00:00:00.000Z","1994-07-01T00:00:00.000Z","1994-10-01T00:00:00.000Z","1995-01-01T00:00:00.000Z","1995-04-01T00:00:00.000Z","1995-07-01T00:00:00.000Z","1995-10-01T00:00:00.000Z","1996-01-01T00:00:00.000Z","1996-04-01T00:00:00.000Z","1996-07-01T00:00:00.000Z","1996-10-01T00:00:00.000Z","1997-01-01T00:00:00.000Z","1997-04-01T00:00:00.000Z","1997-07-01T00:00:00.000Z","1997-10-01T00:00:00.000Z","1998-01-01T00:00:00.000Z","1998-04-01T00:00:00.000Z","1998-07-01T00:00:00.000Z","1998-10-01T00:00:00.000Z","1999-01-01T00:00:00.000Z","1999-04-01T00:00:00.000Z","1999-07-01T00:00:00.000Z","1999-10-01T00:00:00.000Z","2000-01-01T00:00:00.000Z","2000-04-01T00:00:00.000Z","2000-07-01T00:00:00.000Z","2000-10-01T00:00:00.000Z","2001-01-01T00:00:00.000Z","2001-04-01T00:00:00.000Z","2001-07-01T00:00:00.000Z","2001-10-01T00:00:00.000Z","2002-01-01T00:00:00.000Z","2002-04-01T00:00:00.000Z","2002-07-01T00:00:00.000Z","2002-10-01T00:00:00.000Z","2003-01-01T00:00:00.000Z","2003-04-01T00:00:00.000Z","2003-07-01T00:00:00.000Z","2003-10-01T00:00:00.000Z","2004-01-01T00:00:00.000Z","2004-04-01T00:00:00.000Z","2004-07-01T00:00:00.000Z","2004-10-01T00:00:00.000Z","2005-01-01T00:00:00.000Z","2005-04-01T00:00:00.000Z","2005-07-01T00:00:00.000Z","2005-10-01T00:00:00.000Z","2006-01-01T00:00:00.000Z","2006-04-01T00:00:00.000Z","2006-07-01T00:00:00.000Z","2006-10-01T00:00:00.000Z","2007-01-01T00:00:00.000Z","2007-04-01T00:00:00.000Z","2007-07-01T00:00:00.000Z","2007-10-01T00:00:00.000Z","2008-01-01T00:00:00.000Z","2008-04-01T00:00:00.000Z","2008-07-01T00:00:00.000Z","2008-10-01T00:00:00.000Z","2009-01-01T00:00:00.000Z","2009-04-01T00:00:00.000Z","2009-07-01T00:00:00.000Z","2009-10-01T00:00:00.000Z","2010-01-01T00:00:00.000Z","2010-04-01T00:00:00.000Z","2010-07-01T00:00:00.000Z","2010-10-01T00:00:00.000Z","2011-01-01T00:00:00.000Z","2011-04-01T00:00:00.000Z","2011-07-01T00:00:00.000Z","2011-10-01T00:00:00.000Z","2012-01-01T00:00:00.000Z","2012-04-01T00:00:00.000Z","2012-07-01T00:00:00.000Z","2012-10-01T00:00:00.000Z","2013-01-01T00:00:00.000Z","2013-04-01T00:00:00.000Z","2013-07-01T00:00:00.000Z","2013-10-01T00:00:00.000Z","2014-01-01T00:00:00.000Z","2014-04-01T00:00:00.000Z","2014-07-01T00:00:00.000Z","2014-10-01T00:00:00.000Z","2015-01-01T00:00:00.000Z","2015-04-01T00:00:00.000Z","2015-07-01T00:00:00.000Z","2015-10-01T00:00:00.000Z","2016-01-01T00:00:00.000Z","2016-04-01T00:00:00.000Z","2016-07-01T00:00:00.000Z","2016-10-01T00:00:00.000Z","2017-01-01T00:00:00.000Z","2017-04-01T00:00:00.000Z","2017-07-01T00:00:00.000Z","2017-10-01T00:00:00.000Z","2018-01-01T00:00:00.000Z","2018-04-01T00:00:00.000Z","2018-07-01T00:00:00.000Z","2018-10-01T00:00:00.000Z","2019-01-01T00:00:00.000Z","2019-04-01T00:00:00.000Z","2019-07-01T00:00:00.000Z","2019-10-01T00:00:00.000Z"],[448.399902,-157.799927,327.499878,42.8000489999999,-13.5,79.6999510000001,-52.5,-411.299926,-55.6999519999999,-238.700073,-136.299927,362.099976,257.5,309.300049,136.800049,-116.5,107.799804,-145.599853,-183.300049,213.300049,241.800049,40.1999510000001,143.300049,-103.800049,168.199951,235.899902,-143.599853,103.599853,310,367.800049,313.699951,-1011.099853,37.8999020000001,282.600098,36.8999020000001,18.8000489999999,221.100098,11.2998040000002,342.900147,-52.1999510000001,-214.200196,-363.5,220.200196,-479.800049,191.599853,195.900147,70.8000489999999,-23.8000489999999,80.3000489999999,-240.5,87.7998040000002,-107.299804,-30.6000979999999,483.899902,177.800049,288.300049,299.399902,-287.799804,-88.1000979999999,112.700195,-274.200195,262,335.600098,-155.899903,509.199707,178.100098,-217.299805,669.599609999999,510.800293,-133,901.100097,-35.3002930000002,-142.199707,964.799805,-733.600098,-723.100097,521.300293,285.100097,66.2998049999997,175.200195,1224.899414,866.5,1058.700196,-766.700196,-317.699218000002,-1375.300293,-256.899903,-804,762.799805,14.8999020000001,-1058,-356.600097,320.700195,16.6000979999999,671.799804,514.800293,748.700195999999,-277.400390999999,214.099609000001,412.900390999999,333.099609000001,165.200196,1053.600586,-39.6005859999987,1562.299804,258.600585999999,-373.200194999999,513.599609000001,689.5,382.600585999999,451.899414000001,756.400390999999,-1469.900391,781.900390999999,-344.099609000001,-3830.100586,-1067.899414,629.899414000001,1462.40039,123.599610000001,183.5,1116.40039,-497.299804,962.799804,875.799805000001,392.799805000001,-999.200196,-693.5,200.100585999999,-159.5,-628,758.200196,262.299804,-228.700194999999,30.0996090000008,874.700196,333.600585999999,957,678.799804,-717.400389999999,60.2001949999994,551,-756.099609000001,-939.200196,-707.100585999999,1129.400391,631.200194999999,204.599610000001,598.700194999999,200.099609000001,-442.199218000002,881.699218000002,-73.8994140000013,-343.799804,826.099609000001,-1406.700195,513.299804,1040.09961,-174.099609999997,76.5996099999975],[4248,506,10242,2289,2181,-1020,-310,1418,-8752,-1757,-41,-1018,2887,8984,7501,5225,4421,5072,2855,10996,9425,6318,7923,10449,-453,4531,9362,-806,6684,10249,3034,9181,6252,9887,4503,7501,5030,10719,1038,3494,13781,-9363,5548,804,-12948,14215,-2026,5329,581,1040,3074,6168,750,3250,1031,1322,6223,4058,2922,5914,-511,4066,4885,-2005,8865,1212,-961,11302,13268,3948,9349,4658,6848,5909,4875,1406,12984,8783,12831,7367,10765,9273,10787,3305,9322,4761,2871,9860,13672,11217,4444,10045,6744,7848,7873,3298,12356,3150,10375,8637,10449,8576,7662,11804,13551,11235,10500,11135,8415,15242,13232,17498,11095,9383,771,-6201,-3130,10004,11014,8952,14036,7974,9230,12065,2493,6002,5982,6862,6192,368,8602,5265,2818,7752,9224,8638,4114,8207,8139,6880,7149,6242,10518,7285,4714,9522,7515,8772,14997,14931,14239,12520,6135,5632,10266,6345,8974,3176,8161,6946]]},"evals":[],"jsHooks":[]}</script></p>
+</div>
+<div id="granger-causality-test" class="section level2">
+<h2>Granger causality test</h2>
+<p>This test is used for determining whether one time series is useful in forecasting in another time series. X is set to be granger-cause Y if using current and past observations of both X and Y is better than using only Y when we trying to forecast Y.
+The null hypothesis is</p>
+<p><span class="math display">\[H_{0}: \beta_0 =\beta_1 = \dots = \beta_p = 0\]</span>
+For simplicity, the built-in function grangertest() will be used. The test statistic follows <span class="math inline">\(F_{p, N-2p-1}\)</span> where <span class="math inline">\(N\)</span> is the length of the dataset. If the p-value is less than the <span class="math inline">\(\alpha\)</span> then we can reject null hypotheis and conclude X granger-cause Y. Note that in order to use grangertest, the time series must be stationary, thus the built-in function stl() will be used to detrend the time series.
+Based on the output,large p-value fail to reject null hypothesis in both direction, then there is no granger-cause between two variables. But granger casuality test has limitation. In the following section more test will be done to find out whether GDP is helpful in predicting S&amp;P/TSX Composite index.</p>
+<pre><code>## Granger causality test
+## 
+## Model 1: gdp.remainder ~ Lags(gdp.remainder, 1:6) + Lags(tsx.remainder, 1:6)
+## Model 2: gdp.remainder ~ Lags(gdp.remainder, 1:6)
+##   Res.Df Df      F Pr(&gt;F)
+## 1    141                 
+## 2    147 -6 0.8709  0.518</code></pre>
+<pre><code>## Granger causality test
+## 
+## Model 1: tsx.remainder ~ Lags(tsx.remainder, 1:6) + Lags(gdp.remainder, 1:6)
+## Model 2: tsx.remainder ~ Lags(tsx.remainder, 1:6)
+##   Res.Df Df      F Pr(&gt;F)
+## 1    141                 
+## 2    147 -6 0.7234 0.6314</code></pre>
+</div>
+<div id="find-appropriate-lags-to-use-in-the-transfer-noise-model" class="section level2">
+<h2>find appropriate lags to use in the transfer noise model</h2>
+<p>In this section, I am trying to identify what lags are used for identifying the relationship between response and explanatory variable. The two variables are difference in GDP, and difference in index. First, I will conduct Prewhiten to the variables, then find the cross-correlation between GDP and stock price. The cross-correlation statistic follows a chi-square distribution, we could use ccf() function to determine the critical value for simplicity. Also, from the cross-correlation plot, it seems like GDP leads stock prices. So let GDP be the explanatory variable and stock prices be the response variable.
+It turns out that there is no significant relation between response variable and lags of explanatory variable. That is, only <span class="math inline">\(X_t\)</span> should be used to predicting <span class="math inline">\(Y_t\)</span></p>
+<pre><code>## Series: gdp.obs 
+## ARIMA(1,0,2)(1,0,0)[4] with non-zero mean 
+## 
+## Coefficients:
+##          ar1      ma1     ma2     sar1      mean
+##       0.8791  -0.7553  0.2041  -0.2953  5847.231
+## s.e.  0.0786   0.1066  0.1063   0.0861  1029.197
+## 
+## sigma^2 estimated as 20100799:  log likelihood=-1393.23
+## AIC=2798.46   AICc=2799.08   BIC=2816.2
+## 
+## Training set error measures:
+##                    ME     RMSE     MAE        MPE     MAPE      MASE
+## Training set 91.32209 4403.751 3393.52 -0.3477519 128.0677 0.6636525
+##                     ACF1
+## Training set 0.003816013</code></pre>
+<p><img src="/post/2020-12-20-final-markdown/2020-12-20-final_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="fit-linear-regression" class="section level2">
+<h2>fit linear regression</h2>
+<p>Suppose a least square linear model is adequate to describe the relationship between the response and explanatory variables, then we are going to fit a linear regression model between response and explanatory variable. Recall the assumption of linear regression:
+<span class="math display">\[E(e_i) = 0\\
+Var(e_i) = \sigma^2\\
+Cov(e_i,e_j)= 0 \text{ } \forall i \ne j\]</span>
+then if the model is adequate then there should be no serial correlation between residuals <span class="math inline">\(\hat{e}_i\)</span>. It turns out that there is no serial correlation between residuals, so this linear model is adequate to describe the relationship between the variables. There is no need to use the TFN model</p>
+<pre><code>## 
+## Call:
+## lm(formula = tsx.ts ~ gdp.ts)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -3388.3  -235.9    39.1   322.0  1167.4 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -1.764e+02  7.567e+01  -2.331    0.021 *  
+## gdp.ts       4.280e-02  9.446e-03   4.531 1.15e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 591.4 on 158 degrees of freedom
+## Multiple R-squared:  0.115,  Adjusted R-squared:  0.1094 
+## F-statistic: 20.53 on 1 and 158 DF,  p-value: 1.154e-05</code></pre>
+<p><img src="/post/2020-12-20-final-markdown/2020-12-20-final_files/figure-html/unnamed-chunk-4-1.png" width="672" /><img src="/post/2020-12-20-final-markdown/2020-12-20-final_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+</div>
+<div id="testing-and-predicting" class="section level2">
+<h2>Testing and Predicting</h2>
+<p>In this section we will predict the response varible using the linear model and arima model. We decide to use Mean Square Error(MSE) as the performance metric. We also try to ensemble the two model by finding the weight that minimize MSE. It turns out that the MSE are 649.36, 695.40 and 649.25 for linear model, arima, and ensemble model respectively. So the linear model alone is pretty good. Note that although the arima model is not very bad in terms of MSE, but it seems fail to modeling the movement of response variable, and the ensemble model only has negligible MSE improvement compare to the linear model, so the arima model is completely garbage. This observation strengthens our beliefs that the explanatory is helpful in predicting the response, because the arima model only use the response variable alone. The prediction are shown in the figure below.
+<div id="htmlwidget-2" style="width:672px;height:480px;" class="dygraphs html-widget"></div>
+<script type="application/json" data-for="htmlwidget-2">{"x":{"attrs":{"title":"Figure 5.1: prediction","labels":["quarter","linear","arma","ensemble","data"],"legend":"auto","retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":60}}},"scale":"quarterly","annotations":[],"shadings":[],"events":[],"format":"date","data":[["2016-01-01T00:00:00.000Z","2016-04-01T00:00:00.000Z","2016-07-01T00:00:00.000Z","2016-10-01T00:00:00.000Z","2017-01-01T00:00:00.000Z","2017-04-01T00:00:00.000Z","2017-07-01T00:00:00.000Z","2017-10-01T00:00:00.000Z","2018-01-01T00:00:00.000Z","2018-04-01T00:00:00.000Z","2018-07-01T00:00:00.000Z","2018-10-01T00:00:00.000Z","2019-01-01T00:00:00.000Z","2019-04-01T00:00:00.000Z","2019-07-01T00:00:00.000Z"],[227.212685130417,139.929098656492,194.595500349428,465.318134031631,462.447821770904,432.353032612979,357.594445094954,79.9134786594734,58.0382200663573,259.568932433157,89.0462903981501,203.380395450441,-48.7721876964524,168.02336714785,115.183527802649],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[216.560804560946,133.369130201266,185.47273491981,443.503712941237,440.767962812817,412.084037223929,340.830181606446,76.1670820615762,55.3173500222545,247.400169644952,84.8717415610942,193.845788343156,-46.4857153625849,160.146320852164,109.783648033524],[1129.400391,631.200194999999,204.599610000001,598.700194999999,200.099609000001,-442.199218000002,881.699218000002,-73.8994140000013,-343.799804,826.099609000001,-1406.700195,513.299804,1040.09961,-174.099609999997,76.5996099999975]]},"evals":[],"jsHooks":[]}</script></p>
+<p>We consider an possible improvement —- VAR, which is proposed by macroeconometrician Christopher Sims (1980) to model the joint dynamics and causal relations among a set of macroeconomic variables. VAR models are useful for forecasting macroeconomic variables(3). Recall that in the previous section, the response variable and explanatory variable are difference in stock index and difference in GDP respectively.
+Instead in this section we will first use the original dataset and then find any cointegration if exists. Recall that for a univariate time series to be an <span class="math inline">\(I(1)\)</span> process, if the time series is stationary after differencing once and cointegration is a generalization in multivariate time series. If any coinegration exists, we could further improve the VAR model into an error correction model.
+Firstly, we will use AIC to identify the appropriate lags to use the VAR model, and it turns out that lag number <span class="math inline">\(P = 3\)</span>. So all of the eigenvalues of the companion matrix has length less than 1. The definition of companion matrix is given by <span class="math display">\[\left(\begin{matrix}
+A_{1} &amp; A_{2} &amp; ... &amp; A_{p} \\
+I &amp; 0 &amp; ... &amp; 0 \\
+... &amp; I &amp; ... &amp; 0 \\
+... &amp; ... &amp; ... &amp; ... \\
+... &amp; ... &amp; ... &amp; I 
+\end{matrix} \right)\]</span> where <span class="math inline">\(A_{i}\)</span> are coefficient matrices in the var model, in this context, we should have three coefficient matrix because the lag number <span class="math inline">\(p = 3\)</span>.
+Next we will use Johnsen max eigenvalue test to find out whether any cointegration exists and it turns out this multivariate time series is not cointegrated. The prediction generated by VAR model is shown below.</p>
+<pre><code>## $selection
+## AIC(n)  HQ(n)  SC(n) FPE(n) 
+##      4      1      1      4 
+## 
+## $criteria
+##                   1            2            3            4            5
+## AIC(n) 2.960468e+01 2.957757e+01 2.960673e+01 2.953911e+01 2.954548e+01
+## HQ(n)  2.967430e+01 2.968201e+01 2.974598e+01 2.971318e+01 2.975436e+01
+## SC(n)  2.977601e+01 2.983457e+01 2.994939e+01 2.996744e+01 3.005948e+01
+## FPE(n) 7.197188e+12 7.005277e+12 7.213656e+12 6.743803e+12 6.789546e+12
+##                   6            7            8            9           10
+## AIC(n) 2.959217e+01 2.962298e+01 2.967618e+01 2.971950e+01 2.974476e+01
+## HQ(n)  2.983586e+01 2.990148e+01 2.998949e+01 3.006763e+01 3.012769e+01
+## SC(n)  3.019184e+01 3.030831e+01 3.044718e+01 3.057617e+01 3.068709e+01
+## FPE(n) 7.117920e+12 7.345952e+12 7.754572e+12 8.107399e+12 8.326713e+12</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left"></th>
+<th align="right">eigen max</th>
+<th align="right">10pct</th>
+<th align="right">5pct</th>
+<th align="right">1pct</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">r &lt;= 1 |</td>
+<td align="right">13.51454</td>
+<td align="right">7.52</td>
+<td align="right">9.24</td>
+<td align="right">12.97</td>
+</tr>
+<tr class="even">
+<td align="left">r = 0 |</td>
+<td align="right">76.80367</td>
+<td align="right">13.75</td>
+<td align="right">15.67</td>
+<td align="right">20.20</td>
+</tr>
+</tbody>
+</table>
+<p><div id="htmlwidget-3" style="width:672px;height:480px;" class="dygraphs html-widget"></div>
+<script type="application/json" data-for="htmlwidget-3">{"x":{"attrs":{"labels":["quarter","VARS","data"],"legend":"auto","retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":60}}},"scale":"quarterly","annotations":[],"shadings":[],"events":[],"format":"date","data":[["2016-04-01T00:00:00.000Z","2016-07-01T00:00:00.000Z","2016-10-01T00:00:00.000Z","2017-01-01T00:00:00.000Z","2017-04-01T00:00:00.000Z","2017-07-01T00:00:00.000Z","2017-10-01T00:00:00.000Z","2018-01-01T00:00:00.000Z","2018-04-01T00:00:00.000Z","2018-07-01T00:00:00.000Z","2018-10-01T00:00:00.000Z","2019-01-01T00:00:00.000Z","2019-04-01T00:00:00.000Z","2019-07-01T00:00:00.000Z","2019-10-01T00:00:00.000Z"],[13026.3865198535,13380.5820903106,13700.6928146048,13974.6385783043,14212.2305873967,14420.9747159647,14606.943633675,14774.9701778501,14928.9931152721,15072.1197807883,15206.7955286332,15334.9247131092,15457.9888922648,15577.136999794,15693.2595909324],[13951.5,14582.700195,14787.299805,15386,15586.099609,15143.900391,16025.599609,15951.700195,15607.900391,16434,15027.299805,15540.599609,16580.699219,16406.599609,16483.199219]]},"evals":[],"jsHooks":[]}</script>
+## Final ensemble:
+In this section, we will ensemble prediction generated by the linear model and the VAR model using the MSE minimization method. Recall that the two time series I used for linear model are differencing in gdp as the explanatory and differencing in index as the response, the prediction from linear model is also the differencing in index, so a transformation is needed, and this could be done in just few lines of code. It turns out that the ensembles model is the best in terms of MSE. The prediction is shown below.
+<div id="htmlwidget-4" style="width:672px;height:480px;" class="dygraphs html-widget"></div>
+<script type="application/json" data-for="htmlwidget-4">{"x":{"attrs":{"labels":["quarter","data","ensemble","VARS","linear"],"legend":"auto","retainDateWindow":false,"axes":{"x":{"pixelsPerLabel":60}}},"scale":"quarterly","annotations":[],"shadings":[],"events":[],"format":"date","data":[["2016-04-01T00:00:00.000Z","2016-07-01T00:00:00.000Z","2016-10-01T00:00:00.000Z","2017-01-01T00:00:00.000Z","2017-04-01T00:00:00.000Z","2017-07-01T00:00:00.000Z","2017-10-01T00:00:00.000Z","2018-01-01T00:00:00.000Z","2018-04-01T00:00:00.000Z","2018-07-01T00:00:00.000Z","2018-10-01T00:00:00.000Z","2019-01-01T00:00:00.000Z","2019-04-01T00:00:00.000Z","2019-07-01T00:00:00.000Z","2019-10-01T00:00:00.000Z"],[13951.5,14582.700195,14787.299805,15386,15586.099609,15143.900391,16025.599609,15951.700195,15607.900391,16434,15027.299805,15540.599609,16580.699219,16406.599609,16483.199219],[13061.8738208862,13084.4016930507,13210.2246919878,13780.3998799712,14366.0510567536,14920.9242362137,15372.5560136218,15404.190441086,15409.6365619436,15733.0067267239,15797.0516521236,16041.6638109441,15898.7387674376,16093.5419446795,16208.2109394036],[13026.3865198535,13380.5820903106,13700.6928146048,13974.6385783043,14212.2305873967,14420.9747159647,14606.943633675,14774.9701778501,14928.9931152721,15072.1197807883,15206.7955286332,15334.9247131092,15457.9888922648,15577.136999794,15693.2595909324],[13049.3122941304,13189.2413927869,13383.8368931363,13849.155027168,14311.6028489389,14743.9558815519,15101.5503266468,15181.4638053063,15239.5020253726,15499.0709578058,15588.1172482039,15791.4976436544,15742.7254559579,15910.7488231058,16025.9323509084]]},"evals":[],"jsHooks":[]}</script></p>
+</div>
+</div>
+<div id="discussion" class="section level1">
+<h1>Discussion</h1>
+<div id="summary" class="section level2">
+<h2>Summary:</h2>
+<p>First of all, I transform variables and find leading(explanatory) variable and response variable
+then find lags. Next, train linear regression model, and see if a transfer noise model is needed
+What’s more, train Arima model and ensemble linear model and Arima model by minimize MSE and train VAR model. Lastly, ensemble linear model and VAR model by minimize MSE.</p>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion:</h2>
+<p>By examining the graph of the prediction and the test data, I think my prediction is good, it kind of capture the movement of the index and the overall trend. I get the conclusion that these two indexes are related, GDP leads the S&amp;P Composite Index. As I mentioned in the following section, some possible improvements can be made in the future. Also, I found time series analysis is actually very interesting, time on its own is fascinating. Although I am just in the starting level. In this subject, I hope to learn more about it in the future.</p>
+</div>
+<div id="weaknesses" class="section level2">
+<h2>Weaknesses</h2>
+<p>Based on my knowledge from economics, it is naive to use only one variable-GDP(an macroeconomic factor) to predict stock index which is an microeconomic factor after all.
+The data have small sample bias since I only chose about 36 years, and excluded the recent data due to large fluctuation caused by Covid-19.</p>
+</div>
+<div id="next-steps" class="section level2">
+<h2>Next Steps</h2>
+<p>I would say adding more explanatory variables would be helpful. Such as unemployment rate, firm’s retention rate etc. In addition, conduct intervention analysis to deal with problems like externality, government policy and financial crisis might be helpful.</p>
+</div>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ol style="list-style-type: decimal">
+<li><a href="https://www150.statcan.gc.ca/n1/en/type/data?text=GDP+2020" class="uri">https://www150.statcan.gc.ca/n1/en/type/data?text=GDP+2020</a></li>
+<li>Yahoo Finance-S&amp;P/TSX</li>
+<li><a href="https://www.encyclopedia.com/social-sciences/applied-and-social-sciences-magazines/vector-autoregression#" class="uri">https://www.encyclopedia.com/social-sciences/applied-and-social-sciences-magazines/vector-autoregression#</a>:~:text=Vector%20autoregression%20%28VAR%29%20models%20were%20introduced%20by%20the,macroeconomic%20variables.%20VAR%20models%20are%20useful%20for%20forecasting.</li>
+</ol>
+</div>
